@@ -1,4 +1,5 @@
 using AspNetIdentitydemoApi.Models;
+using AspNetIdentitydemoApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -53,14 +54,16 @@ namespace AspNetIdentitydemoApi
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidAudience = "",
-                    ValidIssuer = "",
+                    ValidAudience = "https://twitter.com/EmilioBarreraS2",
+                    ValidIssuer = "https://twitter.com/EmilioBarreraS2",
                     RequireExpirationTime = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("This is the key that we will use in the encryption")),
                     ValidateIssuerSigningKey = true,
 
                 };
             });
+
+            services.AddScoped<IUserService, UserService>();
 
             services.AddControllers();
 

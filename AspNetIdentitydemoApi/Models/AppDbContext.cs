@@ -13,8 +13,6 @@ namespace AspNetIdentitydemoApi.Models
         {
 
         }
-
-
         public DbSet<Employee> Employees { get; set; }
     }
 }

@@ -2,7 +2,7 @@ using System;
 
 namespace AspNetIdentitydemoApi
 {
-    public class WeatherForecast
+    public class WeatherForecast1
     {
         public DateTime Date { get; set; }
 

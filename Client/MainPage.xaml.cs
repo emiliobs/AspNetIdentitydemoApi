@@ -1,7 +1,10 @@
-﻿using System;
+﻿using AspNetIdentityDemo.Shared;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -25,6 +28,25 @@ namespace Client
         public MainPage()
         {
             this.InitializeComponent();
+        }
+
+        protected async override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            var accessToken = e.Parameter.ToString();
+
+            var httpClient = new HttpClient();
+
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+            var response = await httpClient.GetAsync("http://localhost:52734/weatherforecast");
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            var weatherForcast = JsonConvert.DeserializeObject<IEnumerable<WeatherForecast>>(responseBody);
+
+            lstWeatherForcast.ItemsSource = weatherForcast;
+
+            base.OnNavigatedTo(e);
         }
     }
 }

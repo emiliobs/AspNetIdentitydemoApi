@@ -54,10 +54,10 @@ namespace AspNetIdentitydemoApi
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidAudience = "https://twitter.com/EmilioBarreraS2",
-                    ValidIssuer = "https://twitter.com/EmilioBarreraS2",
+                    ValidAudience = Configuration["AuthSetting:Audince"],
+                    ValidIssuer = Configuration["AuthSetting:Issuer"],
                     RequireExpirationTime = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("This is the key that we will use in the encryption")),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["AuthSetting:Key"])),
                     ValidateIssuerSigningKey = true,
 
                 };
@@ -81,6 +81,7 @@ namespace AspNetIdentitydemoApi
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

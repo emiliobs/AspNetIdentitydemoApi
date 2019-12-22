@@ -15,11 +15,21 @@ namespace AspNetIdentitydemoApi.Services
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
-        public UserService(UserManager<IdentityUser> userManager, IConfiguration configuration)
+        public UserService(UserManager<IdentityUser> userManager, IConfiguration configuration, IEmailService emailService)
         {
             _userManager = userManager;
             _configuration = configuration;
+            _emailService = emailService;
+        }
+
+        public async Task<UserManagerResponse> ConfirmEmailAsync(string userId, string token)
+        {
+
+
+
+            return null;
         }
 
         public async Task<UserManagerResponse> LoginUserAsync(LoginViewModel model)
@@ -106,7 +116,9 @@ namespace AspNetIdentitydemoApi.Services
             if (result.Succeeded)
             {
 
-                //TODO:  Send a confirmation Email
+                var confirmEmailToken = _userManager.GenerateEmailConfirmationTokenAsync(identityUser);  
+
+
 
                 return new UserManagerResponse
                 {

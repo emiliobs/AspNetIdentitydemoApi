@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using AspNetIdentitydemoApi.Services;
 
 namespace AspNetIdentitydemoApi
 {
@@ -64,7 +65,7 @@ namespace AspNetIdentitydemoApi
             });
 
             services.AddScoped<IUserService, UserService>();
-
+            services.AddTransient<IEmailService, EmailService>();
             services.AddControllers();
 
         }

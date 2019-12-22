@@ -14,10 +14,12 @@ namespace AspNetIdentitydemoApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IEmailService _emailService;
 
-        public AuthController(IUserService userService)
+        public AuthController(IUserService userService, IEmailService emailService)
         {
             _userService = userService;
+            _emailService = emailService;
         }
 
 
@@ -53,6 +55,11 @@ namespace AspNetIdentitydemoApi.Controllers
 
                 if (result.Issuccess)
                 {
+
+                    await _emailService.SendEmailAsync(model.Email, "New login", "<h1>Hey!, new login to your account noticed</h1><p>New login to your account at " + DateTime.Now + "</p>");
+                    //await _emailService.SendEmailAsync(model.Email,"New Login.", "<h1>Hey!, new login yo your account noticed</h1><p>New login to your account at "+ DateTime.Now+" </p>");
+                    
+                    
                     return Ok(result);
                 }
                 else

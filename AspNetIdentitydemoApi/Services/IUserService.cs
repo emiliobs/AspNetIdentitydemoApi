@@ -7,5 +7,7 @@ namespace AspNetIdentitydemoApi.Services
     {
         Task<UserManagerResponse> RegisterUserAsync(RegisterViewModel model);
         Task<UserManagerResponse> LoginUserAsync(LoginViewModel model);
+        Task<UserManagerResponse> ConfirmEmailAsync(string userId, string token);
+
     }
 }

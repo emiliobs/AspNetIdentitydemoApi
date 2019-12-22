@@ -6,6 +6,7 @@ using AspNetIdentityDemo.Shared;
 using AspNetIdentitydemoApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace AspNetIdentitydemoApi.Controllers
 {
@@ -15,11 +16,13 @@ namespace AspNetIdentitydemoApi.Controllers
     {
         private readonly IUserService _userService;
         private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(IUserService userService, IEmailService emailService)
+        public AuthController(IUserService userService, IEmailService emailService, IConfiguration configuration)
         {
             _userService = userService;
             _emailService = emailService;
+            _configuration = configuration;
         }
 
 
@@ -71,6 +74,27 @@ namespace AspNetIdentitydemoApi.Controllers
             }
 
             return BadRequest("some properties are not Valid.");
+        }
+
+
+         // /api/auth/confirmemail/?userid&token
+         [HttpGet("ConfirmEmail")]
+         public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(token))
+            {
+                return NotFound();
+            }
+
+
+            var result = await _userService.ConfirmEmailAsync(userId, token);
+
+            if (result.Issuccess)
+            {
+                return Redirect($"{_configuration["appUrl"]}/confirmemail.html");
+            }
+
+            return BadRequest(result);
         }
 
     }

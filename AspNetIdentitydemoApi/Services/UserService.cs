@@ -8,6 +8,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace AspNetIdentitydemoApi.Services
 {
@@ -26,10 +27,39 @@ namespace AspNetIdentitydemoApi.Services
 
         public async Task<UserManagerResponse> ConfirmEmailAsync(string userId, string token)
         {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return  new UserManagerResponse
+                {
+                    Issuccess = false,
+                    Message = "User not Found.",
+                };
+            }
+
+            var decodedToken = WebEncoders.Base64UrlDecode(token);
+            var normalToken = Encoding.UTF8.GetString(decodedToken);
+
+            var result = await _userManager.ConfirmEmailAsync(user, normalToken);
+
+            if (result.Succeeded)
+            {
+                return new UserManagerResponse
+                {
+                    Message = "Email confirmed successfully!",
+                    Issuccess = true,
+                };
+            }
 
 
+            return new UserManagerResponse
+            {
+                Issuccess = false,
+                Message = "Email did not confirm",
+                Errors = result.Errors.Select(e => e.Description),
+            };
 
-            return null;
         }
 
         public async Task<UserManagerResponse> LoginUserAsync(LoginViewModel model)
@@ -116,9 +146,16 @@ namespace AspNetIdentitydemoApi.Services
             if (result.Succeeded)
             {
 
-                var confirmEmailToken = _userManager.GenerateEmailConfirmationTokenAsync(identityUser);  
+                var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
 
+                var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
+                var validationEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
 
+                var url = $"{_configuration["appUrl"]}/api/auth/confirmemail?userid={identityUser.Id}&token={validationEmailToken}";
+               
+                await _emailService.SendEmailAsync(identityUser.Email, "Confirm your Email.",$"<h1>Welcome to Auth Demo</h1>" +
+                      $"<p>Please confirm your Email by <a href='{url}'>Clicking Here.</a></p>");
+                         
 
                 return new UserManagerResponse
                 {

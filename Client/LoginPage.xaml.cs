@@ -53,7 +53,7 @@ namespace Client
 
             var responseObject = JsonConvert.DeserializeObject<UserManagerResponse>(responseBody);
 
-            if (responseObject.Issuccess)
+            if (responseObject.IsSuccess)
             {
                 Frame.Navigate(typeof(MainPage),responseObject.Message);
             }

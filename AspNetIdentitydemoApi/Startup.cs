@@ -67,6 +67,7 @@ namespace AspNetIdentitydemoApi
             services.AddScoped<IUserService, UserService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddControllers();
+            services.AddRazorPages();
 
         }
 
@@ -87,6 +88,7 @@ namespace AspNetIdentitydemoApi
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapRazorPages();
                 endpoints.MapControllers();
             });
         }

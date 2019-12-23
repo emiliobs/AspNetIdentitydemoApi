@@ -1,14 +1,15 @@
 ﻿using AspNetIdentityDemo.Shared;
+using AspNetIdentitydemoApi.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace AspNetIdentitydemoApi.Services
 {
@@ -31,9 +32,9 @@ namespace AspNetIdentitydemoApi.Services
 
             if (user == null)
             {
-                return  new UserManagerResponse
+                return new UserManagerResponse
                 {
-                    Issuccess = false,
+                    IsSuccess = false,
                     Message = "User not Found.",
                 };
             }
@@ -48,19 +49,20 @@ namespace AspNetIdentitydemoApi.Services
                 return new UserManagerResponse
                 {
                     Message = "Email confirmed successfully!",
-                    Issuccess = true,
+                    IsSuccess = true,
                 };
             }
 
 
             return new UserManagerResponse
             {
-                Issuccess = false,
+                IsSuccess = false,
                 Message = "Email did not confirm",
                 Errors = result.Errors.Select(e => e.Description),
             };
 
         }
+
 
         public async Task<UserManagerResponse> LoginUserAsync(LoginViewModel model)
         {
@@ -71,18 +73,18 @@ namespace AspNetIdentitydemoApi.Services
                 return new UserManagerResponse
                 {
                     Message = "There is no user with that Email address.",
-                    Issuccess = false,
+                    IsSuccess = false,
                 };
             }
 
-            var result = await _userManager.CheckPasswordAsync(user,model.Password);
+            var result = await _userManager.CheckPasswordAsync(user, model.Password);
 
             if (!result)
             {
-                return new UserManagerResponse 
+                return new UserManagerResponse
                 {
-                      Message = "Invalid Password.",
-                      Issuccess = false,
+                    Message = "Invalid Password.",
+                    IsSuccess = false,
                 };
             }
 
@@ -101,16 +103,16 @@ namespace AspNetIdentitydemoApi.Services
                     audience: _configuration["AuthSetting:Audince"],
                     claims: claims,
                     expires: DateTime.Now.AddDays(30),
-                    signingCredentials: new  SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+                    signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
                   );
 
             var tokenAsString = new JwtSecurityTokenHandler().WriteToken(token);
 
-            return new UserManagerResponse 
-            { 
-                  Message = tokenAsString ,
-                  Issuccess = true,
-                  ExpireDate = token.ValidTo,
+            return new UserManagerResponse
+            {
+                Message = tokenAsString,
+                IsSuccess = true,
+                ExpireDate = token.ValidTo,
             };
 
 
@@ -129,7 +131,7 @@ namespace AspNetIdentitydemoApi.Services
                 return new UserManagerResponse
                 {
                     Message = "Confirm password doesn´t match the password.",
-                    Issuccess = false,
+                    IsSuccess = false,
 
                 };
 
@@ -152,25 +154,90 @@ namespace AspNetIdentitydemoApi.Services
                 var validationEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
 
                 var url = $"{_configuration["appUrl"]}/api/auth/confirmemail?userid={identityUser.Id}&token={validationEmailToken}";
-               
-                await _emailService.SendEmailAsync(identityUser.Email, "Confirm your Email.",$"<h1>Welcome to Auth Demo</h1>" +
+
+                await _emailService.SendEmailAsync(identityUser.Email, "Confirm your Email.", $"<h1>Welcome to Auth Demo</h1>" +
                       $"<p>Please confirm your Email by <a href='{url}'>Clicking Here.</a></p>");
-                         
+
 
                 return new UserManagerResponse
                 {
                     Message = "User created succssfully",
-                    Issuccess = true,
+                    IsSuccess = true,
                 };
             }
 
             return new UserManagerResponse
             {
                 Message = "User did not create.",
-                Issuccess = false,
+                IsSuccess = false,
                 Errors = result.Errors.Select(e => e.Description),
             };
 
+        }
+        public async Task<UserManagerResponse> ForgetPasswordAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return new UserManagerResponse
+                {
+                    IsSuccess = false,
+                    Message = "No User associated with Email.",
+                };
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedToken = Encoding.UTF8.GetBytes(token);
+            var validToken = WebEncoders.Base64UrlEncode(encodedToken);
+
+            string url = $"{_configuration["AppUrl"]}/ResetPassword?email={email}&token={validToken}";
+
+            await _emailService.SendEmailAsync(email, "Reset Password", "<h1>Follow the instrucctions to reset your password</h1>" +
+                                               $"<p>To reset your Password <a href='{url}'>Click here.</a></p>");
+
+            return new UserManagerResponse
+            {
+                IsSuccess = true,
+                Message = "Reset Password URL has been sent to the Email successfuly!",
+            };
+
+        }
+
+        public async Task<UserManagerResponse> ResetPasswordAsync(ResetPasswordViewModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return new UserManagerResponse
+                {
+                    IsSuccess = false,
+                    Message = "No user associated with email",
+                };
+
+            if (model.NewPassword != model.ConfirmPassword)
+                return new UserManagerResponse
+                {
+                    IsSuccess = false,
+                    Message = "Password doesn't match its confirmation",
+                };
+
+            var decodedToken = WebEncoders.Base64UrlDecode(model.Token);
+            string normalToken = Encoding.UTF8.GetString(decodedToken);
+
+            var result = await _userManager.ResetPasswordAsync(user, normalToken, model.NewPassword);
+
+            if (result.Succeeded)
+                return new UserManagerResponse
+                {
+                    Message = "Password has been reset successfully!",
+                    IsSuccess = true,
+                };
+
+            return new UserManagerResponse
+            {
+                Message = "Something went wrong",
+                IsSuccess = false,
+                Errors = result.Errors.Select(e => e.Description),
+            };
         }
     }
 }

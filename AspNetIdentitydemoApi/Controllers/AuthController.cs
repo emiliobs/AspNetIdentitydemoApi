@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AspNetIdentityDemo.Shared;
+using AspNetIdentitydemoApi.Models;
 using AspNetIdentitydemoApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,7 @@ namespace AspNetIdentitydemoApi.Controllers
             {
                 var result = await _userService.RegisterUserAsync(model);
 
-                if (result.Issuccess)
+                if (result.IsSuccess)
                 {
                     return Ok(result);// Satus code: 200s
                 }
@@ -56,7 +57,7 @@ namespace AspNetIdentitydemoApi.Controllers
             {
                 var result = await _userService.LoginUserAsync(model);
 
-                if (result.Issuccess)
+                if (result.IsSuccess)
                 {
 
                     await _emailService.SendEmailAsync(model.Email, "New login", "<h1>Hey!, new login to your account noticed</h1><p>New login to your account at " + DateTime.Now + "</p>");
@@ -89,7 +90,7 @@ namespace AspNetIdentitydemoApi.Controllers
 
             var result = await _userService.ConfirmEmailAsync(userId, token);
 
-            if (result.Issuccess)
+            if (result.IsSuccess)
             {
                 return Redirect($"{_configuration["appUrl"]}/confirmemail.html");
             }
@@ -97,5 +98,40 @@ namespace AspNetIdentitydemoApi.Controllers
             return BadRequest(result);
         }
 
+        // /api/auth/ForgetPassword
+        [HttpPost("ForgetPassword")]
+        public async Task<IActionResult> ForgetPassword(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return NotFound();
+            }
+
+            var result = await _userService.ForgetPasswordAsync(email);
+
+            if (result.IsSuccess)
+            {
+                return Ok(result);          //200
+            }
+
+            return BadRequest(result); //400
+        }
+
+        // api/auth/resetpassword
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromForm]ResetPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _userService.ResetPasswordAsync(model);
+
+                if (result.IsSuccess)
+                    return Ok(result);
+
+                return BadRequest(result);
+            }
+
+            return BadRequest("Some properties are not valid");
+        }
     }
 }

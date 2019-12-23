@@ -53,7 +53,7 @@ namespace Client
 
             var responseObject = JsonConvert.DeserializeObject<UserManagerResponse>(responseBody);
 
-            if (responseObject.Issuccess)
+            if (responseObject.IsSuccess)
             {
                 var dialog = new MessageDialog("You Account has been created successfully!");
                 await dialog.ShowAsync();
